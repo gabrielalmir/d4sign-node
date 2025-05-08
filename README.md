@@ -4,6 +4,8 @@ A Node.js/TypeScript library for interacting with the [D4Sign](https://d4sign.co
 
 **Disclaimer:** This library is not an official D4Sign API client. It is a community-driven implementation and is not affiliated with or endorsed by D4Sign.
 
+Official release in NPM schedule to 09/05/2025 07:00 PM (UTC-3).
+
 ## Installation
 
 ```bash
