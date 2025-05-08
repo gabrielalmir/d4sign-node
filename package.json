@@ -1,0 +1,44 @@
+{
+  "name": "d4sign-node",
+  "version": "1.0.0",
+  "description": "Node.js/TypeScript library for interacting with the D4Sign digital signature API",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "prepublishOnly": "npm run build"
+  },
+  "dependencies": {
+    "@types/form-data": "^2.2.1",
+    "axios": "^1.9.0",
+    "dotenv": "^16.5.0",
+    "form-data": "^4.0.2"
+  },
+  "devDependencies": {
+    "@types/jest": "^29.5.0",
+    "axios-mock-adapter": "^2.1.0",
+    "jest": "^29.5.0",
+    "ts-jest": "^29.1.0",
+    "typescript": "^5.5.3"
+  },
+  "keywords": [
+    "d4sign",
+    "digital signature",
+    "electronic signature",
+    "api",
+    "client",
+    "typescript",
+    "node"
+  ],
+  "author": {
+    "name": "D4Sign Node.js Library Contributors"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/gabrielalmir/d4sign-node.git"
+  },
+  "license": "MIT",
+  "private": false
+}
