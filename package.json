@@ -1,6 +1,6 @@
 {
   "name": "d4sign-node",
-  "version": "1.0.0",
+  "version": "0.0.1",
   "description": "Node.js/TypeScript library for interacting with the D4Sign digital signature API",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
