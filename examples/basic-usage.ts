@@ -122,7 +122,6 @@ async function registerWebhook(url: string) {
   }
 }
 
-// Run the examples
 async function runExamples() {
   // Get account information
   await getAccountInfo();
