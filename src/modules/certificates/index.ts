@@ -25,75 +25,32 @@ export class Certificates {
   }
 
   /**
-   * List all certificates
-   *
-   * @returns Promise with list of certificates
+   * Find certificates for a document and signer
+   * @param uuidArquivo - UUID of the document
+   * @param keySigner - Key of the signer
    */
-  async list(): Promise<CertificateListResponse> {
-    const response = await this.http.get('/certificates');
+  async find(uuidArquivo: string, keySigner: string): Promise<D4SignResponse> {
+    const data = { key_signer: keySigner };
+    const response = await this.http.post(`/certificate/${uuidArquivo}/list`, data);
     return response.data;
   }
 
   /**
-   * Get certificate details
-   *
-   * @param certificateUuid - UUID of the certificate
-   * @returns Promise with certificate details
+   * Add a certificate to a document for a signer
+   * @param uuidArquivo - UUID of the document
+   * @param keySigner - Key of the signer
+   * @param documentType - Type of the document
+   * @param documentNumber - Document number (optional)
+   * @param pades - PAdES flag (optional)
    */
-  async getCertificate(certificateUuid: string): Promise<D4SignResponse> {
-    const response = await this.http.get(`/certificates/${certificateUuid}`);
-    return response.data;
-  }
-
-  /**
-   * Create a new certificate
-   *
-   * @param name - Name of the certificate
-   * @param type - Type of the certificate
-   * @param email - Email associated with the certificate
-   * @param cpf - CPF (Brazilian ID) associated with the certificate
-   * @returns Promise with creation result
-   */
-  async create(name: string, type: CertificateType, email: string, cpf: string): Promise<D4SignResponse> {
-    const response = await this.http.post('/certificates', {
-      name,
-      type,
-      email,
-      cpf,
-    });
-    return response.data;
-  }
-
-  /**
-   * Delete a certificate
-   *
-   * @param certificateUuid - UUID of the certificate to delete
-   * @returns Promise with deletion result
-   */
-  async delete(certificateUuid: string): Promise<D4SignResponse> {
-    const response = await this.http.delete(`/certificates/${certificateUuid}`);
-    return response.data;
-  }
-
-  /**
-   * Enable a certificate
-   *
-   * @param certificateUuid - UUID of the certificate to enable
-   * @returns Promise with enable result
-   */
-  async enable(certificateUuid: string): Promise<D4SignResponse> {
-    const response = await this.http.post(`/certificates/${certificateUuid}/enable`);
-    return response.data;
-  }
-
-  /**
-   * Disable a certificate
-   *
-   * @param certificateUuid - UUID of the certificate to disable
-   * @returns Promise with disable result
-   */
-  async disable(certificateUuid: string): Promise<D4SignResponse> {
-    const response = await this.http.post(`/certificates/${certificateUuid}/disable`);
+  async add(uuidArquivo: string, keySigner: string, documentType: string, documentNumber: string = '', pades: string = ''): Promise<D4SignResponse> {
+    const data = {
+      key_signer: keySigner,
+      document_type: documentType,
+      document_number: documentNumber,
+      pades: pades
+    };
+    const response = await this.http.post(`/certificate/${uuidArquivo}/add`, data);
     return response.data;
   }
 }
