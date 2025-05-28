@@ -57,7 +57,7 @@ async function uploadDocument(uuidSafe: string, filePath: string, uuidFolder?: s
 // Example: List signatures for a document
 async function listSignatures(documentKey: string) {
   try {
-    const result = await client.signatures.listsignatures(documentKey);
+    const result = await client.signatures.listSignatures(documentKey);
     console.log('Signatures:');
     console.log(JSON.stringify(result, null, 2));
   } catch (error) {
@@ -68,7 +68,7 @@ async function listSignatures(documentKey: string) {
 // Example: Add info to a signer
 async function addInfo(documentKey: string, email: string) {
   try {
-    const result = await client.signatures.addinfo(documentKey, email, 'Signer Name', '12345678900', '1990-01-01');
+    const result = await client.signatures.addInfo(documentKey, email, 'Signer Name', '12345678900', '1990-01-01');
     console.log('Add info result:');
     console.log(JSON.stringify(result, null, 2));
   } catch (error) {
