@@ -80,128 +80,43 @@ const account = await client.getAccount();
 ### Documents
 
 ```typescript
-// List all documents
-const documents = await client.documents.list();
+// Find documents (PHP: find)
+const documents = await client.documents.find();
 
-// Get document details
-const document = await client.documents.getDocument('document-uuid');
-
-// Upload a document
-const uploadedDocument = await client.documents.upload('/path/to/file.pdf', 'Document Name');
-
-// Upload a document from buffer
-const buffer = fs.readFileSync('/path/to/file.pdf');
-const uploadedDocumentFromBuffer = await client.documents.uploadBuffer(buffer, 'Document Name');
-
-// Delete a document
-await client.documents.delete('document-uuid');
+// Upload a document (PHP: upload)
+const uploadedDocument = await client.documents.upload('uuid-safe', '/path/to/file.pdf', 'uuid-folder');
 
 // Cancel a document
-await client.documents.cancel('document-uuid');
+await client.documents.cancel('document-uuid', 'optional comment');
 
-// Send a document to signers
-await client.documents.send('document-uuid', 'Please sign this document');
+// List signatures for a document
+const signatures = await client.signatures.listSignatures('document-uuid');
 
-// Get document download link
-const downloadLink = await client.documents.getDownloadLink('document-uuid');
-```
+// Add info to a signer
+await client.signatures.addInfo('document-uuid', 'signer@example.com', 'Signer Name', '12345678900', '1990-01-01');
 
-### Signatures
-
-```typescript
-// Add signers to a document
-const signers = [
-  {
-    email: 'signer1@example.com',
-    name: 'Signer 1',
-    documentation: '12345678900', // CPF or CNPJ
-  },
-  {
-    email: 'signer2@example.com',
-    name: 'Signer 2',
-  },
-];
-await client.signatures.addSigners('document-uuid', signers);
-
-// Remove a signer from a document
-await client.signatures.removeSigner('document-uuid', 'signer@example.com');
-
-// List signers of a document
-const signers = await client.signatures.listSigners('document-uuid');
-
-// Set signature type for a signer
-import { SignerType } from 'd4sign-node';
-await client.signatures.setSignatureType('document-uuid', 'signer@example.com', SignerType.EMAIL);
-
-// Send a reminder to a signer
-await client.signatures.sendReminder('document-uuid', 'signer@example.com');
-
-// Get signature status
-const status = await client.signatures.getStatus('document-uuid');
-
-// Create a signature list
-await client.signatures.createSignatureList('document-uuid');
-
-// Cancel a signature
-await client.signatures.cancelSignature('document-uuid', 'signer@example.com');
+// Resend document to a signer
+await client.signatures.resend('document-uuid', 'signer@example.com');
 ```
 
 ### Webhooks
 
 ```typescript
-// List all webhooks
-const webhooks = await client.webhooks.list();
+// Add a webhook to a document
+await client.webhooks.add('document-uuid', 'https://your-webhook-url.com');
 
-// Register a new webhook
-import { WebhookEvent } from 'd4sign-node';
-await client.webhooks.register(
-  'https://your-webhook-url.com',
-  [WebhookEvent.DOCUMENT_SIGNED, WebhookEvent.DOCUMENT_FINISHED]
-);
-
-// Delete a webhook
-await client.webhooks.delete('webhook-uuid');
-
-// Update a webhook
-await client.webhooks.update(
-  'webhook-uuid',
-  'https://your-new-webhook-url.com',
-  [WebhookEvent.DOCUMENT_SIGNED]
-);
-
-// Enable a webhook
-await client.webhooks.enable('webhook-uuid');
-
-// Disable a webhook
-await client.webhooks.disable('webhook-uuid');
+// List webhooks for a document
+const webhooks = await client.webhooks.list('document-uuid');
 ```
 
 ### Certificates
 
 ```typescript
-// List all certificates
-const certificates = await client.certificates.list();
+// Find certificates for a document and signer
+const certificates = await client.certificates.find('document-uuid', 'key-signer');
 
-// Get certificate details
-const certificate = await client.certificates.getCertificate('certificate-uuid');
-
-// Create a new certificate
-import { CertificateType } from 'd4sign-node';
-await client.certificates.create(
-  'Certificate Name',
-  CertificateType.ICP_BRASIL,
-  'user@example.com',
-  '12345678900' // CPF
-);
-
-// Delete a certificate
-await client.certificates.delete('certificate-uuid');
-
-// Enable a certificate
-await client.certificates.enable('certificate-uuid');
-
-// Disable a certificate
-await client.certificates.disable('certificate-uuid');
+// Add a certificate to a document for a signer
+await client.certificates.add('document-uuid', 'key-signer', 'document_type');
 ```
 
 ## Error Handling

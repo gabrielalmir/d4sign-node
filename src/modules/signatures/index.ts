@@ -42,7 +42,7 @@ export class Signatures {
   /**
    * Change password code for a signer
    */
-  async changepasswordcode(documentKey: string, keySigner: string, email: string, code: string): Promise<D4SignResponse> {
+  async changePasswordCode(documentKey: string, keySigner: string, email: string, code: string): Promise<D4SignResponse> {
     const data = {
       email: JSON.stringify(email),
       'password-code': JSON.stringify(code),
@@ -55,7 +55,7 @@ export class Signatures {
   /**
    * Change SMS number for a signer
    */
-  async changesmsnumber(documentKey: string, keySigner: string, email: string, sms: string): Promise<D4SignResponse> {
+  async changeSmsNumber(documentKey: string, keySigner: string, email: string, sms: string): Promise<D4SignResponse> {
     const data = {
       email: JSON.stringify(email),
       'sms-number': JSON.stringify(sms),
@@ -68,7 +68,7 @@ export class Signatures {
   /**
    * Remove a signer from a document
    */
-  async removeemail(documentKey: string, email: string, key: string): Promise<D4SignResponse> {
+  async removeEmail(documentKey: string, email: string, key: string): Promise<D4SignResponse> {
     const data = {
       'email-signer': JSON.stringify(email),
       'key-signer': JSON.stringify(key)
@@ -80,7 +80,7 @@ export class Signatures {
   /**
    * Change a signer's email
    */
-  async changeemail(documentKey: string, emailBefore: string, emailAfter: string, key: string = ''): Promise<D4SignResponse> {
+  async changeEmail(documentKey: string, emailBefore: string, emailAfter: string, key: string = ''): Promise<D4SignResponse> {
     const data = {
       'email-before': JSON.stringify(emailBefore),
       'email-after': JSON.stringify(emailAfter),
@@ -93,7 +93,7 @@ export class Signatures {
   /**
    * List signatures for a document
    */
-  async listsignatures(documentKey: string): Promise<D4SignResponse> {
+  async listSignatures(documentKey: string): Promise<D4SignResponse> {
     const response = await this.http.get(`/documents/${documentKey}/list`);
     return response.data;
   }
@@ -122,7 +122,7 @@ export class Signatures {
   /**
    * Add info to a signer
    */
-  async addinfo(documentKey: string, email: string = '', displayName: string = '', documentation: string = '', birthday: string = '', key: string = ''): Promise<D4SignResponse> {
+  async addInfo(documentKey: string, email: string = '', displayName: string = '', documentation: string = '', birthday: string = '', key: string = ''): Promise<D4SignResponse> {
     const data = {
       key_signer: JSON.stringify(key),
       email: JSON.stringify(email),

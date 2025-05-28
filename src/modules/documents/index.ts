@@ -26,7 +26,7 @@ export class Documents {
    * @param email - Email of the signer
    * @param code - Password code
    */
-  async changepasswordcode(documentKey: string, keySigner: string, email: string, code: string): Promise<D4SignResponse> {
+  async changePasswordCode(documentKey: string, keySigner: string, email: string, code: string): Promise<D4SignResponse> {
     const data = {
       email: JSON.stringify(email),
       'password-code': JSON.stringify(code),
@@ -43,7 +43,7 @@ export class Documents {
    * @param email - Email of the signer
    * @param sms - SMS number
    */
-  async changesmsnumber(documentKey: string, keySigner: string, email: string, sms: string): Promise<D4SignResponse> {
+  async changeSmsNumber(documentKey: string, keySigner: string, email: string, sms: string): Promise<D4SignResponse> {
     const data = {
       email: JSON.stringify(email),
       'sms-number': JSON.stringify(sms),
@@ -59,7 +59,7 @@ export class Documents {
    * @param email - Email of the signer
    * @param key - Key of the signer
    */
-  async removeemail(documentKey: string, email: string, key: string): Promise<D4SignResponse> {
+  async removeEmail(documentKey: string, email: string, key: string): Promise<D4SignResponse> {
     const data = {
       'email-signer': JSON.stringify(email),
       'key-signer': JSON.stringify(key)
@@ -75,7 +75,7 @@ export class Documents {
    * @param emailAfter - After email
    * @param key - Key of the signer
    */
-  async changeemail(documentKey: string, emailBefore: string, emailAfter: string, key: string = ''): Promise<D4SignResponse> {
+  async changeEmail(documentKey: string, emailBefore: string, emailAfter: string, key: string = ''): Promise<D4SignResponse> {
     const data = {
       'email-before': JSON.stringify(emailBefore),
       'email-after': JSON.stringify(emailAfter),
@@ -101,7 +101,7 @@ export class Documents {
    * List signatures
    * @param documentKey - UUID of the document
    */
-  async listsignatures(documentKey: string): Promise<D4SignResponse> {
+  async listSignatures(documentKey: string): Promise<D4SignResponse> {
     const response = await this.http.get(`/documents/${documentKey}/list`);
     return response.data;
   }
@@ -160,7 +160,7 @@ export class Documents {
    * @param name - Name of the file
    * @param uuidFolder - Optional folder UUID
    */
-  async uploadbinary(uuidSafe: string, base64Binary: string, mimeType: string, name: string, uuidFolder: string = ''): Promise<D4SignResponse> {
+  async uploadBinary(uuidSafe: string, base64Binary: string, mimeType: string, name: string, uuidFolder: string = ''): Promise<D4SignResponse> {
     if (!uuidSafe) throw new Error('UUID Safe not set.');
     const data = {
       base64_binary_file: base64Binary,
@@ -179,7 +179,7 @@ export class Documents {
    * @param mimeType - MIME type of the file
    * @param name - Name of the file
    */
-  async uploadslavebinary(uuidMaster: string, base64Binary: string, mimeType: string, name: string): Promise<D4SignResponse> {
+  async uploadSlaveBinary(uuidMaster: string, base64Binary: string, mimeType: string, name: string): Promise<D4SignResponse> {
     if (!uuidMaster) throw new Error('UUID master document not set.');
     const data = {
       base64_binary_file: base64Binary,
@@ -195,7 +195,7 @@ export class Documents {
    * @param uuidOriginalFile - UUID of the original file
    * @param filePath - Path to the file to upload
    */
-  async uploadslave(uuidOriginalFile: string, filePath: string): Promise<D4SignResponse> {
+  async uploadSlave(uuidOriginalFile: string, filePath: string): Promise<D4SignResponse> {
     if (!uuidOriginalFile) throw new Error('UUID Original file not set.');
     const formData = new FormData();
     const fileContent = fs.readFileSync(filePath);
@@ -242,7 +242,7 @@ export class Documents {
    * @param templates - Array of templates
    * @param uuidFolder - Optional folder UUID
    */
-  async makedocumentbytemplate(documentKey: string, nameDocument: string, templates: any[], uuidFolder: string = ''): Promise<D4SignResponse> {
+  async makeDocumentByTemplate(documentKey: string, nameDocument: string, templates: any[], uuidFolder: string = ''): Promise<D4SignResponse> {
     const data = {
       templates: JSON.stringify(templates),
       name_document: JSON.stringify(nameDocument),
@@ -259,7 +259,7 @@ export class Documents {
    * @param templates - Array of templates
    * @param uuidFolder - Optional folder UUID
    */
-  async makedocumentbytemplateword(documentKey: string, nameDocument: string, templates: any[], uuidFolder: string = ''): Promise<D4SignResponse> {
+  async makeDocumentByTemplateWord(documentKey: string, nameDocument: string, templates: any[], uuidFolder: string = ''): Promise<D4SignResponse> {
     const data = {
       templates: JSON.stringify(templates),
       name_document: JSON.stringify(nameDocument),
@@ -274,7 +274,7 @@ export class Documents {
    * @param documentKey - UUID of the document
    * @param url - URL of the webhook
    */
-  async webhookadd(documentKey: string, url: string): Promise<D4SignResponse> {
+  async webhookAdd(documentKey: string, url: string): Promise<D4SignResponse> {
     const data = { url: JSON.stringify(url) };
     const response = await this.http.post(`/documents/${documentKey}/webhooks`, data);
     return response.data;
@@ -284,7 +284,7 @@ export class Documents {
    * Webhook list
    * @param documentKey - UUID of the document
    */
-  async webhooklist(documentKey: string): Promise<D4SignResponse> {
+  async webhookList(documentKey: string): Promise<D4SignResponse> {
     const response = await this.http.get(`/documents/${documentKey}/webhooks`);
     return response.data;
   }
@@ -315,7 +315,7 @@ export class Documents {
    * @param birthday - Birthday of the signer
    * @param key - Key of the signer
    */
-  async addinfo(documentKey: string, email: string = '', displayName: string = '', documentation: string = '', birthday: string = '', key: string = ''): Promise<D4SignResponse> {
+  async addInfo(documentKey: string, email: string = '', displayName: string = '', documentation: string = '', birthday: string = '', key: string = ''): Promise<D4SignResponse> {
     const data = {
       key_signer: JSON.stringify(key),
       email: JSON.stringify(email),
@@ -347,7 +347,7 @@ export class Documents {
    * @param documentKey - UUID of the document
    * @param type - Type of file to download (optional)
    */
-  async getfileurl(documentKey: string, type: string): Promise<D4SignResponse> {
+  async getFileUrl(documentKey: string, type: string): Promise<D4SignResponse> {
     const data = { type: JSON.stringify(type) };
     const response = await this.http.post(`/documents/${documentKey}/download`, data);
     return response.data;
@@ -361,7 +361,7 @@ export class Documents {
    * @param name - Name of the file
    * @param uuidFolder - Optional folder UUID
    */
-  async uploadhash(uuidSafe: string, sha256: string, sha512: string, name: string, uuidFolder: string = ''): Promise<D4SignResponse> {
+  async uploadHash(uuidSafe: string, sha256: string, sha512: string, name: string, uuidFolder: string = ''): Promise<D4SignResponse> {
     if (!uuidSafe) throw new Error('UUID Safe not set.');
     const data = {
       sha256: sha256,
