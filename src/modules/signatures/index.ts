@@ -40,100 +40,109 @@ export class Signatures {
   }
 
   /**
-   * Add signers to a document
-   *
-   * @param documentUuid - UUID of the document
-   * @param signers - Array of signers to add
-   * @returns Promise with add signers result
+   * Change password code for a signer
    */
-  async addSigners(documentUuid: string, signers: Signer[]): Promise<D4SignResponse> {
-    const response = await this.http.post(`/documents/${documentUuid}/signers`, {
-      signers,
-    });
+  async changepasswordcode(documentKey: string, keySigner: string, email: string, code: string): Promise<D4SignResponse> {
+    const data = {
+      email: JSON.stringify(email),
+      'password-code': JSON.stringify(code),
+      'key-signer': JSON.stringify(keySigner)
+    };
+    const response = await this.http.post(`/documents/${documentKey}/changepasswordcode`, data);
+    return response.data;
+  }
+
+  /**
+   * Change SMS number for a signer
+   */
+  async changesmsnumber(documentKey: string, keySigner: string, email: string, sms: string): Promise<D4SignResponse> {
+    const data = {
+      email: JSON.stringify(email),
+      'sms-number': JSON.stringify(sms),
+      'key-signer': JSON.stringify(keySigner)
+    };
+    const response = await this.http.post(`/documents/${documentKey}/changesmsnumber`, data);
     return response.data;
   }
 
   /**
    * Remove a signer from a document
-   *
-   * @param documentUuid - UUID of the document
-   * @param email - Email of the signer to remove
-   * @returns Promise with remove signer result
    */
-  async removeSigner(documentUuid: string, email: string): Promise<D4SignResponse> {
-    const response = await this.http.delete(`/documents/${documentUuid}/signers/${email}`);
+  async removeemail(documentKey: string, email: string, key: string): Promise<D4SignResponse> {
+    const data = {
+      'email-signer': JSON.stringify(email),
+      'key-signer': JSON.stringify(key)
+    };
+    const response = await this.http.post(`/documents/${documentKey}/removeemaillist`, data);
     return response.data;
   }
 
   /**
-   * List signers of a document
-   *
-   * @param documentUuid - UUID of the document
-   * @returns Promise with list of signers
+   * Change a signer's email
    */
-  async listSigners(documentUuid: string): Promise<D4SignResponse> {
-    const response = await this.http.get(`/documents/${documentUuid}/signers`);
+  async changeemail(documentKey: string, emailBefore: string, emailAfter: string, key: string = ''): Promise<D4SignResponse> {
+    const data = {
+      'email-before': JSON.stringify(emailBefore),
+      'email-after': JSON.stringify(emailAfter),
+      'key-signer': JSON.stringify(key)
+    };
+    const response = await this.http.post(`/documents/${documentKey}/changeemail`, data);
     return response.data;
   }
 
   /**
-   * Set signature type for a signer
-   *
-   * @param documentUuid - UUID of the document
-   * @param email - Email of the signer
-   * @param type - Type of signature
-   * @returns Promise with set signature type result
+   * List signatures for a document
    */
-  async setSignatureType(documentUuid: string, email: string, type: SignerType): Promise<D4SignResponse> {
-    const response = await this.http.post(`/documents/${documentUuid}/signers/${email}/type`, {
-      type,
-    });
+  async listsignatures(documentKey: string): Promise<D4SignResponse> {
+    const response = await this.http.get(`/documents/${documentKey}/list`);
     return response.data;
   }
 
   /**
-   * Send a reminder to a signer
-   *
-   * @param documentUuid - UUID of the document
-   * @param email - Email of the signer
-   * @returns Promise with send reminder result
+   * Get status for a document
    */
-  async sendReminder(documentUuid: string, email: string): Promise<D4SignResponse> {
-    const response = await this.http.post(`/documents/${documentUuid}/signers/${email}/reminder`);
+  async status(status: string, page: number = 1): Promise<D4SignResponse> {
+    const params = { pg: page };
+    const response = await this.http.get(`/documents/${status}/status`, { params });
     return response.data;
   }
 
   /**
-   * Get signature status
-   *
-   * @param documentUuid - UUID of the document
-   * @returns Promise with signature status
+   * Create a signature list for a document
    */
-  async getStatus(documentUuid: string): Promise<D4SignResponse> {
-    const response = await this.http.get(`/documents/${documentUuid}/status`);
+  async createList(documentKey: string, signers: any[], skipEmail: boolean = false): Promise<D4SignResponse> {
+    const data = {
+      signers: JSON.stringify(signers),
+      skip_email: JSON.stringify(skipEmail)
+    };
+    const response = await this.http.post(`/documents/${documentKey}/createlist`, data);
     return response.data;
   }
 
   /**
-   * Create a signature list
-   *
-   * @param documentUuid - UUID of the document
-   * @returns Promise with signature list creation result
+   * Add info to a signer
    */
-  async createSignatureList(documentUuid: string): Promise<D4SignResponse> {
-    const response = await this.http.post(`/documents/${documentUuid}/signaturelist`);
+  async addinfo(documentKey: string, email: string = '', displayName: string = '', documentation: string = '', birthday: string = '', key: string = ''): Promise<D4SignResponse> {
+    const data = {
+      key_signer: JSON.stringify(key),
+      email: JSON.stringify(email),
+      display_name: JSON.stringify(displayName),
+      documentation: JSON.stringify(documentation),
+      birthday: JSON.stringify(birthday)
+    };
+    const response = await this.http.post(`/documents/${documentKey}/addinfo`, data);
     return response.data;
   }
 
   /**
-   * Cancel a signature
-   *
-   * @param documentUuid - UUID of the document
-   * @param email - Email of the signer
-   * @returns Promise with cancel signature result
+   * Resend a document to a signer
    */
-  async cancelSignature(documentUuid: string, email: string): Promise<D4SignResponse> {
-    const response = await this.http.post(`/documents/${documentUuid}/signers/${email}/cancel`);
+  async resend(documentKey: string, email: string, key: string = ''): Promise<D4SignResponse> {
+    const data = {
+      email: JSON.stringify(email),
+      key_signer: JSON.stringify(key)
+    };
+    const response = await this.http.post(`/documents/${documentKey}/resend`, data);
     return response.data;
   }
 }
