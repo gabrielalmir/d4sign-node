@@ -9,6 +9,7 @@ import { D4SignResponse, DocumentDetailResponse, DocumentListResponse } from '..
  */
 export class Documents {
   private http: AxiosInstance;
+  private readonly endpoint = '/documents';
 
   /**
    * Creates a new Documents module instance
@@ -32,7 +33,7 @@ export class Documents {
       'password-code': JSON.stringify(code),
       'key-signer': JSON.stringify(keySigner)
     };
-    const response = await this.http.post(`/documents/${documentKey}/changepasswordcode`, data);
+    const response = await this.http.post(`${this.endpoint}/${documentKey}/changepasswordcode`, data);
     return response.data;
   }
 
@@ -49,7 +50,7 @@ export class Documents {
       'sms-number': JSON.stringify(sms),
       'key-signer': JSON.stringify(keySigner)
     };
-    const response = await this.http.post(`/documents/${documentKey}/changesmsnumber`, data);
+    const response = await this.http.post(`${this.endpoint}/${documentKey}/changesmsnumber`, data);
     return response.data;
   }
 
@@ -64,7 +65,7 @@ export class Documents {
       'email-signer': JSON.stringify(email),
       'key-signer': JSON.stringify(key)
     };
-    const response = await this.http.post(`/documents/${documentKey}/removeemaillist`, data);
+    const response = await this.http.post(`${this.endpoint}/${documentKey}/removeemaillist`, data);
     return response.data;
   }
 
@@ -81,7 +82,7 @@ export class Documents {
       'email-after': JSON.stringify(emailAfter),
       'key-signer': JSON.stringify(key)
     };
-    const response = await this.http.post(`/documents/${documentKey}/changeemail`, data);
+    const response = await this.http.post(`${this.endpoint}/${documentKey}/changeemail`, data);
     return response.data;
   }
 
@@ -92,9 +93,17 @@ export class Documents {
    */
   async find(documentKey: string = '', page: number = 1): Promise<DocumentListResponse> {
     const params: any = { pg: page };
-    const url = documentKey ? `/documents/${documentKey}` : '/documents';
+    const url = documentKey ? `${this.endpoint}/${documentKey}` : this.endpoint;
     const response = await this.http.get(url, { params });
     return response.data;
+  }
+
+  /**
+   * List documents
+   * @param page - Optional page number
+   */
+  async list(page: number = 1): Promise<DocumentListResponse> {
+    return this.find('', page);
   }
 
   /**
@@ -102,7 +111,7 @@ export class Documents {
    * @param documentKey - UUID of the document
    */
   async listSignatures(documentKey: string): Promise<D4SignResponse> {
-    const response = await this.http.get(`/documents/${documentKey}/list`);
+    const response = await this.http.get(`${this.endpoint}/${documentKey}/list`);
     return response.data;
   }
 
@@ -113,7 +122,7 @@ export class Documents {
    */
   async status(status: string, page: number = 1): Promise<D4SignResponse> {
     const params = { pg: page };
-    const response = await this.http.get(`/documents/${status}/status`, { params });
+    const response = await this.http.get(`${this.endpoint}/${status}/status`, { params });
     return response.data;
   }
 
@@ -125,7 +134,8 @@ export class Documents {
    */
   async safe(safeKey: string, uuidFolder: string = '', page: number = 1): Promise<D4SignResponse> {
     const params = { pg: page };
-    const response = await this.http.get(`/documents/${safeKey}/safe/${uuidFolder}`, { params });
+    const folderSegment = uuidFolder ? `/${uuidFolder}` : '';
+    const response = await this.http.get(`${this.endpoint}/${safeKey}/safe${folderSegment}`, { params });
     return response.data;
   }
 
@@ -144,7 +154,7 @@ export class Documents {
     if (uuidFolder) {
       formData.append('uuid_folder', JSON.stringify(uuidFolder));
     }
-    const response = await this.http.post(`/documents/${uuidSafe}/upload`, formData, {
+    const response = await this.http.post(`${this.endpoint}/${uuidSafe}/upload`, formData, {
       headers: {
         ...formData.getHeaders(),
       },
@@ -168,7 +178,7 @@ export class Documents {
       name: name,
       uuid_folder: JSON.stringify(uuidFolder)
     };
-    const response = await this.http.post(`/documents/${uuidSafe}/uploadbinary`, data);
+    const response = await this.http.post(`${this.endpoint}/${uuidSafe}/uploadbinary`, data);
     return response.data;
   }
 
@@ -186,7 +196,7 @@ export class Documents {
       mime_type: mimeType,
       name: name
     };
-    const response = await this.http.post(`/documents/${uuidMaster}/uploadslavebinary`, data);
+    const response = await this.http.post(`${this.endpoint}/${uuidMaster}/uploadslavebinary`, data);
     return response.data;
   }
 
@@ -201,7 +211,7 @@ export class Documents {
     const fileContent = fs.readFileSync(filePath);
     const fileName = path.basename(filePath);
     formData.append('file', fileContent, fileName);
-    const response = await this.http.post(`/documents/${uuidOriginalFile}/uploadslave`, formData, {
+    const response = await this.http.post(`${this.endpoint}/${uuidOriginalFile}/uploadslave`, formData, {
       headers: {
         ...formData.getHeaders(),
       },
@@ -216,7 +226,7 @@ export class Documents {
    */
   async cancel(documentKey: string, comment: string = ''): Promise<D4SignResponse> {
     const data = { comment: JSON.stringify(comment) };
-    const response = await this.http.post(`/documents/${documentKey}/cancel`, data);
+    const response = await this.http.post(`${this.endpoint}/${documentKey}/cancel`, data);
     return response.data;
   }
 
@@ -231,7 +241,7 @@ export class Documents {
       signers: JSON.stringify(signers),
       skip_email: JSON.stringify(skipEmail)
     };
-    const response = await this.http.post(`/documents/${documentKey}/createlist`, data);
+    const response = await this.http.post(`${this.endpoint}/${documentKey}/createlist`, data);
     return response.data;
   }
 
@@ -248,7 +258,7 @@ export class Documents {
       name_document: JSON.stringify(nameDocument),
       uuid_folder: JSON.stringify(uuidFolder)
     };
-    const response = await this.http.post(`/documents/${documentKey}/makedocumentbytemplate`, data);
+    const response = await this.http.post(`${this.endpoint}/${documentKey}/makedocumentbytemplate`, data);
     return response.data;
   }
 
@@ -265,7 +275,7 @@ export class Documents {
       name_document: JSON.stringify(nameDocument),
       uuid_folder: JSON.stringify(uuidFolder)
     };
-    const response = await this.http.post(`/documents/${documentKey}/makedocumentbytemplateword`, data);
+    const response = await this.http.post(`${this.endpoint}/${documentKey}/makedocumentbytemplateword`, data);
     return response.data;
   }
 
@@ -276,7 +286,7 @@ export class Documents {
    */
   async webhookAdd(documentKey: string, url: string): Promise<D4SignResponse> {
     const data = { url: JSON.stringify(url) };
-    const response = await this.http.post(`/documents/${documentKey}/webhooks`, data);
+    const response = await this.http.post(`${this.endpoint}/${documentKey}/webhooks`, data);
     return response.data;
   }
 
@@ -285,7 +295,7 @@ export class Documents {
    * @param documentKey - UUID of the document
    */
   async webhookList(documentKey: string): Promise<D4SignResponse> {
-    const response = await this.http.get(`/documents/${documentKey}/webhooks`);
+    const response = await this.http.get(`${this.endpoint}/${documentKey}/webhooks`);
     return response.data;
   }
 
@@ -302,7 +312,7 @@ export class Documents {
       workflow: JSON.stringify(workflow),
       skip_email: JSON.stringify(skipEmail)
     };
-    const response = await this.http.post(`/documents/${documentKey}/sendtosigner`, data);
+    const response = await this.http.post(`${this.endpoint}/${documentKey}/sendtosigner`, data);
     return response.data;
   }
 
@@ -323,7 +333,7 @@ export class Documents {
       documentation: JSON.stringify(documentation),
       birthday: JSON.stringify(birthday)
     };
-    const response = await this.http.post(`/documents/${documentKey}/addinfo`, data);
+    const response = await this.http.post(`${this.endpoint}/${documentKey}/addinfo`, data);
     return response.data;
   }
 
@@ -338,7 +348,7 @@ export class Documents {
       email: JSON.stringify(email),
       key_signer: JSON.stringify(key)
     };
-    const response = await this.http.post(`/documents/${documentKey}/resend`, data);
+    const response = await this.http.post(`${this.endpoint}/${documentKey}/resend`, data);
     return response.data;
   }
 
@@ -349,7 +359,7 @@ export class Documents {
    */
   async getFileUrl(documentKey: string, type: string): Promise<D4SignResponse> {
     const data = { type: JSON.stringify(type) };
-    const response = await this.http.post(`/documents/${documentKey}/download`, data);
+    const response = await this.http.post(`${this.endpoint}/${documentKey}/download`, data);
     return response.data;
   }
 
@@ -369,7 +379,7 @@ export class Documents {
       name: name,
       uuid_folder: JSON.stringify(uuidFolder)
     };
-    const response = await this.http.post(`/documents/${uuidSafe}/uploadhash`, data);
+    const response = await this.http.post(`${this.endpoint}/${uuidSafe}/uploadhash`, data);
     return response.data;
   }
 
@@ -378,7 +388,7 @@ export class Documents {
    * @param documentUuid - UUID of the document
    */
   async getDocument(documentUuid: string): Promise<DocumentDetailResponse> {
-    const response = await this.http.get(`/documents/${documentUuid}`);
+    const response = await this.http.get(`${this.endpoint}/${documentUuid}`);
     return response.data;
   }
 }
