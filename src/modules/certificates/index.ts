@@ -1,5 +1,5 @@
 import { AxiosInstance } from 'axios';
-import { CertificateListResponse, D4SignResponse } from '../../types';
+import { D4SignResponse } from '../../types';
 
 /**
  * Certificate type enum
@@ -14,6 +14,7 @@ export enum CertificateType {
  */
 export class Certificates {
   private http: AxiosInstance;
+  private readonly endpoint = '/certificates';
 
   /**
    * Creates a new Certificates module instance
@@ -31,7 +32,7 @@ export class Certificates {
    */
   async find(uuidArquivo: string, keySigner: string): Promise<D4SignResponse> {
     const data = { key_signer: keySigner };
-    const response = await this.http.post(`/certificate/${uuidArquivo}/list`, data);
+    const response = await this.http.post(`${this.endpoint}/${uuidArquivo}/list`, data);
     return response.data;
   }
 
@@ -50,7 +51,7 @@ export class Certificates {
       document_number: documentNumber,
       pades: pades
     };
-    const response = await this.http.post(`/certificate/${uuidArquivo}/add`, data);
+    const response = await this.http.post(`${this.endpoint}/${uuidArquivo}/add`, data);
     return response.data;
   }
 }

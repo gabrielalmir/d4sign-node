@@ -6,6 +6,7 @@ import { D4SignResponse } from '../../types';
  */
 export class Webhooks {
   private http: AxiosInstance;
+  private readonly endpoint = '/documents';
 
   /**
    * Creates a new Webhooks module instance
@@ -23,7 +24,7 @@ export class Webhooks {
    */
   async add(documentKey: string, url: string): Promise<D4SignResponse> {
     const data = { url: JSON.stringify(url) };
-    const response = await this.http.post(`/documents/${documentKey}/webhooks`, data);
+    const response = await this.http.post(`${this.endpoint}/${documentKey}/webhooks`, data);
     return response.data;
   }
 
@@ -32,7 +33,7 @@ export class Webhooks {
    * @param documentKey - UUID of the document
    */
   async list(documentKey: string): Promise<D4SignResponse> {
-    const response = await this.http.get(`/documents/${documentKey}/webhooks`);
+    const response = await this.http.get(`${this.endpoint}/${documentKey}/webhooks`);
     return response.data;
   }
 }

@@ -21,6 +21,7 @@ dotenv.config();
  */
 export class D4Sign {
   private apiUrl: string;
+  private readonly accountEndpoint = '/account';
   private apiKey: string;
   private cryptKey?: string;
   private http: AxiosInstance;
@@ -88,7 +89,7 @@ export class D4Sign {
    */
   async getAccount(): Promise<AccountResponse> {
     try {
-      const response = await this.http.get('/account');
+      const response = await this.http.get(this.accountEndpoint);
       return response.data;
     } catch (error) {
       this.handleError(error);

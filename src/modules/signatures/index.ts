@@ -29,6 +29,7 @@ export interface Signer {
  */
 export class Signatures {
   private http: AxiosInstance;
+  private readonly endpoint = '/documents';
 
   /**
    * Creates a new Signatures module instance
@@ -48,7 +49,7 @@ export class Signatures {
       'password-code': JSON.stringify(code),
       'key-signer': JSON.stringify(keySigner)
     };
-    const response = await this.http.post(`/documents/${documentKey}/changepasswordcode`, data);
+    const response = await this.http.post(`${this.endpoint}/${documentKey}/changepasswordcode`, data);
     return response.data;
   }
 
@@ -61,7 +62,7 @@ export class Signatures {
       'sms-number': JSON.stringify(sms),
       'key-signer': JSON.stringify(keySigner)
     };
-    const response = await this.http.post(`/documents/${documentKey}/changesmsnumber`, data);
+    const response = await this.http.post(`${this.endpoint}/${documentKey}/changesmsnumber`, data);
     return response.data;
   }
 
@@ -73,7 +74,7 @@ export class Signatures {
       'email-signer': JSON.stringify(email),
       'key-signer': JSON.stringify(key)
     };
-    const response = await this.http.post(`/documents/${documentKey}/removeemaillist`, data);
+    const response = await this.http.post(`${this.endpoint}/${documentKey}/removeemaillist`, data);
     return response.data;
   }
 
@@ -86,7 +87,7 @@ export class Signatures {
       'email-after': JSON.stringify(emailAfter),
       'key-signer': JSON.stringify(key)
     };
-    const response = await this.http.post(`/documents/${documentKey}/changeemail`, data);
+    const response = await this.http.post(`${this.endpoint}/${documentKey}/changeemail`, data);
     return response.data;
   }
 
@@ -94,7 +95,7 @@ export class Signatures {
    * List signatures for a document
    */
   async listSignatures(documentKey: string): Promise<D4SignResponse> {
-    const response = await this.http.get(`/documents/${documentKey}/list`);
+    const response = await this.http.get(`${this.endpoint}/${documentKey}/list`);
     return response.data;
   }
 
@@ -103,7 +104,7 @@ export class Signatures {
    */
   async status(status: string, page: number = 1): Promise<D4SignResponse> {
     const params = { pg: page };
-    const response = await this.http.get(`/documents/${status}/status`, { params });
+    const response = await this.http.get(`${this.endpoint}/${status}/status`, { params });
     return response.data;
   }
 
@@ -115,7 +116,7 @@ export class Signatures {
       signers: JSON.stringify(signers),
       skip_email: JSON.stringify(skipEmail)
     };
-    const response = await this.http.post(`/documents/${documentKey}/createlist`, data);
+    const response = await this.http.post(`${this.endpoint}/${documentKey}/createlist`, data);
     return response.data;
   }
 
@@ -130,7 +131,7 @@ export class Signatures {
       documentation: JSON.stringify(documentation),
       birthday: JSON.stringify(birthday)
     };
-    const response = await this.http.post(`/documents/${documentKey}/addinfo`, data);
+    const response = await this.http.post(`${this.endpoint}/${documentKey}/addinfo`, data);
     return response.data;
   }
 
@@ -142,7 +143,7 @@ export class Signatures {
       email: JSON.stringify(email),
       key_signer: JSON.stringify(key)
     };
-    const response = await this.http.post(`/documents/${documentKey}/resend`, data);
+    const response = await this.http.post(`${this.endpoint}/${documentKey}/resend`, data);
     return response.data;
   }
 }
