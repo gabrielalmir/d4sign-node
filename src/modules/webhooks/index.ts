@@ -1,20 +1,22 @@
-import { AxiosInstance } from 'axios';
 import { D4SignResponse } from '../../types';
+import { Documents } from '../documents';
 
 /**
  * Webhooks module for D4Sign API
+ *
+ * Delegates to the `Documents` module, which owns the
+ * `/documents/{uuid}/webhooks` endpoints.
  */
 export class Webhooks {
-  private http: AxiosInstance;
-  private readonly endpoint = '/documents';
+  private documents: Documents;
 
   /**
    * Creates a new Webhooks module instance
    *
-   * @param http - Axios instance for making HTTP requests
+   * @param documents - Documents module instance to delegate to
    */
-  constructor(http: AxiosInstance) {
-    this.http = http;
+  constructor(documents: Documents) {
+    this.documents = documents;
   }
 
   /**
@@ -23,9 +25,7 @@ export class Webhooks {
    * @param url - URL of the webhook
    */
   async add(documentKey: string, url: string): Promise<D4SignResponse> {
-    const data = { url: JSON.stringify(url) };
-    const response = await this.http.post(`${this.endpoint}/${documentKey}/webhooks`, data);
-    return response.data;
+    return this.documents.webhookAdd(documentKey, url);
   }
 
   /**
@@ -33,7 +33,6 @@ export class Webhooks {
    * @param documentKey - UUID of the document
    */
   async list(documentKey: string): Promise<D4SignResponse> {
-    const response = await this.http.get(`${this.endpoint}/${documentKey}/webhooks`);
-    return response.data;
+    return this.documents.webhookList(documentKey);
   }
 }

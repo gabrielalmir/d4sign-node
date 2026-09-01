@@ -1,20 +1,18 @@
 import axios, { AxiosInstance, InternalAxiosRequestConfig } from 'axios';
-import * as dotenv from 'dotenv';
-import { D4SignError } from "./errors/d4sign.error";
+import { handleApiError } from "./errors/d4sign.error";
 import { Certificates } from './modules/certificates';
 import { Documents } from './modules/documents';
 import { Signatures } from './modules/signatures';
 import { Webhooks } from './modules/webhooks';
-import { AccountResponse } from './types';
+import { Account } from './types';
 
 // Export all modules and types
+export * from './errors/d4sign.error';
 export * from './modules/certificates';
 export * from './modules/documents';
 export * from './modules/signatures';
 export * from './modules/webhooks';
 export * from './types';
-
-dotenv.config();
 
 /**
  * D4Sign API Client for Node.js
@@ -66,19 +64,25 @@ export class D4Sign {
       if (!config.params) {
         config.params = {};
       }
-      config.params.apikey = this.apiKey;
+      config.params.tokenAPI = this.apiKey;
 
       if (this.cryptKey) {
-        config.params.cryptkey = this.cryptKey;
+        config.params.cryptKey = this.cryptKey;
       }
 
       return config;
     });
 
+    // Convert every failed request into a D4SignError
+    this.http.interceptors.response.use(
+      response => response,
+      error => handleApiError(error)
+    );
+
     // Initialize API modules
     this.documents = new Documents(this.http);
-    this.signatures = new Signatures(this.http);
-    this.webhooks = new Webhooks(this.http);
+    this.signatures = new Signatures(this.documents);
+    this.webhooks = new Webhooks(this.documents);
     this.certificates = new Certificates(this.http);
   }
 
@@ -87,41 +91,9 @@ export class D4Sign {
    *
    * @returns Promise with account information
    */
-  async getAccount(): Promise<AccountResponse> {
-    try {
-      const response = await this.http.get(this.accountEndpoint);
-      return response.data;
-    } catch (error) {
-      this.handleError(error);
-    }
-  }
-
-  /**
-   * Handle API errors
-   *
-   * @param error - Error object from axios
-   */
-  private handleError(error: any): never {
-    if (error.response) {
-      // The request was made and the server responded with a status code
-      // that falls out of the range of 2xx
-      const { status, data } = error.response;
-      throw new D4SignError(
-        `D4Sign API Error: ${status} - ${data.message || JSON.stringify(data)}`,
-        status,
-        data
-      );
-    } else if (error.request) {
-      // The request was made but no response was received
-      throw new D4SignError(
-        `D4Sign API Error: No response received - ${error.message}`,
-        0,
-        null
-      );
-    } else {
-      // Something happened in setting up the request that triggered an Error
-      throw new D4SignError(`D4Sign API Error: ${error.message}`, 0, null);
-    }
+  async getAccount(): Promise<Account> {
+    const response = await this.http.get(this.accountEndpoint);
+    return response.data;
   }
 }
 

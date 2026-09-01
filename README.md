@@ -80,11 +80,30 @@ const account = await client.getAccount();
 ### Documents
 
 ```typescript
-// Find documents (PHP: find)
-const documents = await client.documents.find();
+// List documents (returns a bare array, as the API does)
+const documents = await client.documents.list();
+
+// Get a single document
+const document = await client.documents.getDocument('document-uuid');
 
 // Upload a document (PHP: upload)
 const uploadedDocument = await client.documents.upload('uuid-safe', '/path/to/file.pdf', 'uuid-folder');
+
+// Register signers (POST /documents/{uuid}/createlist)
+await client.documents.createList('document-uuid', [
+  { email: 'signer@example.com', act: '1', foreign: '0' },
+]);
+
+// Send the document to signers
+await client.documents.sendToSigner('document-uuid', 'Please sign');
+
+// Create a document from a template (keyed on the SAFE uuid, not a document uuid)
+await client.documents.makeDocumentByTemplate('uuid-safe', 'My contract', {
+  'uuid-template': { variable: 'value' },
+});
+
+// Get a download link (all options are optional)
+const download = await client.documents.getFileUrl('document-uuid', { type: 'pdf', language: 'pt' });
 
 // Cancel a document
 await client.documents.cancel('document-uuid', 'optional comment');

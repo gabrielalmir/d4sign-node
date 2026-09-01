@@ -3,112 +3,94 @@
  */
 
 /**
- * Base response interface for all D4Sign API responses
+ * Generic response returned by most D4Sign write endpoints.
+ *
+ * The API returns plain JSON objects (usually with a `message` field);
+ * extra fields vary per endpoint, e.g. `uuid` after an upload.
  */
 export interface D4SignResponse {
-  message: string;
-  success: boolean;
-  data?: any;
+  message?: string;
+  [key: string]: any;
 }
 
 /**
- * Account information response
+ * Account information from GET /account.
+ * The API returns a flat JSON object; fields vary per account/plan.
  */
-export interface AccountResponse extends D4SignResponse {
-  data: {
-    uuid: string;
-    name: string;
-    email: string;
-    plan_name: string;
-    plan_value: number;
-    balance: number;
-    documents_month: number;
-    documents_total: number;
-    emails_month: number;
-    emails_total: number;
-    sms_month: number;
-    sms_total: number;
-    whatsapp_month: number;
-    whatsapp_total: number;
-    safe_month: number;
-    safe_total: number;
-  };
+export interface Account {
+  [key: string]: any;
 }
 
 /**
- * Document information
+ * Document as returned by GET /documents and GET /documents/{uuid}
  */
 export interface Document {
-  uuid: string;
-  name: string;
-  status: string;
-  created_at: string;
-  updated_at: string;
-  folder_uuid?: string;
-  signatures?: Signature[];
+  uuidDoc?: string;
+  nameDoc?: string;
+  type?: string;
+  size?: string;
+  pages?: string;
+  uuidSafe?: string;
+  safeName?: string;
+  statusId?: string;
+  statusName?: string;
+  statusComment?: string;
+  whoCanceled?: string;
+  [key: string]: any;
 }
 
 /**
- * Signature information
+ * Signer entry accepted by POST /documents/{uuid}/createlist.
+ *
+ * `email`, `act` and `foreign` are required by the API; the remaining
+ * fields enable optional authentication/signature features.
  */
-export interface Signature {
-  uuid: string;
+export interface Signer {
   email: string;
-  name: string;
-  status: string;
-  action: string;
-  signed_at?: string;
-  created_at: string;
-  updated_at: string;
+  act: string;
+  foreign: string;
+  certificadoicpbr?: string;
+  assinatura_presencial?: string;
+  docauth?: string;
+  docauthandselfie?: string;
+  embed_methodauth?: string;
+  embed_smsnumber?: string;
+  upload_allow?: string;
+  upload_obs?: string;
+  whatsapp_number?: string;
+  uuid_grupo?: string;
+  certificadoicpbr_tipo?: string;
+  certificadoicpbr_cpf?: string;
+  certificadoicpbr_cnpj?: string;
+  password_code?: string;
+  auth_pix?: string;
+  auth_pix_nome?: string;
+  auth_pix_cpf?: string;
+  videoselfie?: string;
+  d4sign_score?: string;
+  d4sign_score_nome?: string;
+  d4sign_score_cpf?: string;
+  d4sign_score_similarity?: string;
+  foreign_lang?: string;
+  [key: string]: any;
 }
 
 /**
- * Document list response
- */
-export interface DocumentListResponse extends D4SignResponse {
-  data: Document[];
-}
-
-/**
- * Document detail response
- */
-export interface DocumentDetailResponse extends D4SignResponse {
-  data: Document;
-}
-
-/**
- * Webhook information
+ * Webhook registered on a document
  */
 export interface Webhook {
-  uuid: string;
   url: string;
-  status: string;
-  created_at: string;
-  updated_at: string;
+  [key: string]: any;
 }
 
 /**
- * Webhook list response
+ * Options for POST /documents/{uuid}/download — all fields are optional
  */
-export interface WebhookListResponse extends D4SignResponse {
-  data: Webhook[];
-}
-
-/**
- * Certificate information
- */
-export interface Certificate {
-  uuid: string;
-  name: string;
-  type: string;
-  status: string;
-  created_at: string;
-  updated_at: string;
-}
-
-/**
- * Certificate list response
- */
-export interface CertificateListResponse extends D4SignResponse {
-  data: Certificate[];
+export interface DownloadOptions {
+  /** File type, e.g. 'pdf' or 'zip' */
+  type?: string;
+  /** Language of the signature page, e.g. 'pt' or 'en' */
+  language?: string;
+  /** Set to '1' to download only the document without the certificate page */
+  document?: string;
 }
