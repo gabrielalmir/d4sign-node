@@ -14,7 +14,8 @@ if (!process.env.D4SIGN_API_KEY) {
 // Create a new D4Sign client
 const client = new D4Sign(
   process.env.D4SIGN_API_KEY,
-  process.env.D4SIGN_CRYPT_KEY
+  process.env.D4SIGN_CRYPT_KEY,
+  { apiUrl: process.env.D4SIGN_API_URL }
 );
 
 // Example: Get account information
@@ -47,7 +48,7 @@ async function uploadDocument(uuidSafe: string, filePath: string, uuidFolder?: s
     const result = await client.documents.upload(uuidSafe, filePath, uuidFolder);
     console.log('Upload result:');
     console.log(JSON.stringify(result, null, 2));
-    return result.data?.uuid;
+    return result.uuid;
   } catch (error) {
     console.error('Error uploading document:', error);
     return null;

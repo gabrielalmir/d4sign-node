@@ -1,8 +1,8 @@
 import { AxiosInstance } from 'axios';
 import FormData from 'form-data';
 import * as fs from 'fs';
-import * as path from 'path';
-import { D4SignResponse, DocumentDetailResponse, DocumentListResponse } from '../../types';
+import { D4SignError } from '../../errors/d4sign.error';
+import { D4SignResponse, Document, DownloadOptions, Signer } from '../../types';
 
 /**
  * Documents module for D4Sign API
@@ -20,6 +20,12 @@ export class Documents {
     this.http = http;
   }
 
+  private assertKey(value: string, name: string): void {
+    if (!value) {
+      throw new D4SignError(`${name} not set.`, 0, null);
+    }
+  }
+
   /**
    * Change password code
    * @param documentKey - UUID of the document
@@ -28,10 +34,11 @@ export class Documents {
    * @param code - Password code
    */
   async changePasswordCode(documentKey: string, keySigner: string, email: string, code: string): Promise<D4SignResponse> {
+    this.assertKey(documentKey, 'documentKey');
     const data = {
-      email: JSON.stringify(email),
-      'password-code': JSON.stringify(code),
-      'key-signer': JSON.stringify(keySigner)
+      email: email,
+      'password-code': code,
+      'key-signer': keySigner
     };
     const response = await this.http.post(`${this.endpoint}/${documentKey}/changepasswordcode`, data);
     return response.data;
@@ -45,10 +52,11 @@ export class Documents {
    * @param sms - SMS number
    */
   async changeSmsNumber(documentKey: string, keySigner: string, email: string, sms: string): Promise<D4SignResponse> {
+    this.assertKey(documentKey, 'documentKey');
     const data = {
-      email: JSON.stringify(email),
-      'sms-number': JSON.stringify(sms),
-      'key-signer': JSON.stringify(keySigner)
+      email: email,
+      'sms-number': sms,
+      'key-signer': keySigner
     };
     const response = await this.http.post(`${this.endpoint}/${documentKey}/changesmsnumber`, data);
     return response.data;
@@ -61,9 +69,10 @@ export class Documents {
    * @param key - Key of the signer
    */
   async removeEmail(documentKey: string, email: string, key: string): Promise<D4SignResponse> {
+    this.assertKey(documentKey, 'documentKey');
     const data = {
-      'email-signer': JSON.stringify(email),
-      'key-signer': JSON.stringify(key)
+      'email-signer': email,
+      'key-signer': key
     };
     const response = await this.http.post(`${this.endpoint}/${documentKey}/removeemaillist`, data);
     return response.data;
@@ -77,10 +86,11 @@ export class Documents {
    * @param key - Key of the signer
    */
   async changeEmail(documentKey: string, emailBefore: string, emailAfter: string, key: string = ''): Promise<D4SignResponse> {
+    this.assertKey(documentKey, 'documentKey');
     const data = {
-      'email-before': JSON.stringify(emailBefore),
-      'email-after': JSON.stringify(emailAfter),
-      'key-signer': JSON.stringify(key)
+      'email-before': emailBefore,
+      'email-after': emailAfter,
+      'key-signer': key
     };
     const response = await this.http.post(`${this.endpoint}/${documentKey}/changeemail`, data);
     return response.data;
@@ -88,22 +98,27 @@ export class Documents {
 
   /**
    * Find documents (matches PHP find)
+   *
+   * With a `documentKey` this returns a single document; without one it
+   * returns the paginated document list.
+   *
    * @param documentKey - Optional document key (UUID)
-   * @param page - Optional page number
+   * @param page - Optional page number (only used when listing)
    */
-  async find(documentKey: string = '', page: number = 1): Promise<DocumentListResponse> {
-    const params: any = { pg: page };
-    const url = documentKey ? `${this.endpoint}/${documentKey}` : this.endpoint;
-    const response = await this.http.get(url, { params });
-    return response.data;
+  async find(documentKey: string = '', page: number = 1): Promise<Document | Document[]> {
+    if (documentKey) {
+      return this.getDocument(documentKey);
+    }
+    return this.list(page);
   }
 
   /**
    * List documents
    * @param page - Optional page number
    */
-  async list(page: number = 1): Promise<DocumentListResponse> {
-    return this.find('', page);
+  async list(page: number = 1): Promise<Document[]> {
+    const response = await this.http.get(this.endpoint, { params: { pg: page } });
+    return response.data;
   }
 
   /**
@@ -111,18 +126,23 @@ export class Documents {
    * @param documentKey - UUID of the document
    */
   async listSignatures(documentKey: string): Promise<D4SignResponse> {
+    this.assertKey(documentKey, 'documentKey');
     const response = await this.http.get(`${this.endpoint}/${documentKey}/list`);
     return response.data;
   }
 
   /**
-   * Status
-   * @param status - Status of the document
+   * List documents in a given phase (GET /documents/{id-fase}/status)
+   *
+   * @param statusId - Phase id (1 = processing, 2 = waiting signers,
+   *   3 = waiting others, 4 = finished, 5 = archived, 6 = canceled),
+   *   NOT a document UUID
    * @param page - Optional page number
    */
-  async status(status: string, page: number = 1): Promise<D4SignResponse> {
+  async status(statusId: string, page: number = 1): Promise<D4SignResponse> {
+    this.assertKey(statusId, 'statusId');
     const params = { pg: page };
-    const response = await this.http.get(`${this.endpoint}/${status}/status`, { params });
+    const response = await this.http.get(`${this.endpoint}/${statusId}/status`, { params });
     return response.data;
   }
 
@@ -133,6 +153,7 @@ export class Documents {
    * @param page - Optional page number
    */
   async safe(safeKey: string, uuidFolder: string = '', page: number = 1): Promise<D4SignResponse> {
+    this.assertKey(safeKey, 'safeKey');
     const params = { pg: page };
     const folderSegment = uuidFolder ? `/${uuidFolder}` : '';
     const response = await this.http.get(`${this.endpoint}/${safeKey}/safe${folderSegment}`, { params });
@@ -146,18 +167,18 @@ export class Documents {
    * @param uuidFolder - Optional folder UUID
    */
   async upload(uuidSafe: string, filePath: string, uuidFolder: string = ''): Promise<D4SignResponse> {
-    if (!uuidSafe) throw new Error('UUID Safe not set.');
+    this.assertKey(uuidSafe, 'uuidSafe');
     const formData = new FormData();
-    const fileContent = fs.readFileSync(filePath);
-    const fileName = path.basename(filePath);
-    formData.append('file', fileContent, fileName);
+    formData.append('file', fs.createReadStream(filePath));
     if (uuidFolder) {
-      formData.append('uuid_folder', JSON.stringify(uuidFolder));
+      formData.append('uuid_folder', uuidFolder);
     }
     const response = await this.http.post(`${this.endpoint}/${uuidSafe}/upload`, formData, {
       headers: {
         ...formData.getHeaders(),
       },
+      maxBodyLength: Infinity,
+      maxContentLength: Infinity,
     });
     return response.data;
   }
@@ -171,13 +192,15 @@ export class Documents {
    * @param uuidFolder - Optional folder UUID
    */
   async uploadBinary(uuidSafe: string, base64Binary: string, mimeType: string, name: string, uuidFolder: string = ''): Promise<D4SignResponse> {
-    if (!uuidSafe) throw new Error('UUID Safe not set.');
-    const data = {
+    this.assertKey(uuidSafe, 'uuidSafe');
+    const data: Record<string, string> = {
       base64_binary_file: base64Binary,
       mime_type: mimeType,
-      name: name,
-      uuid_folder: JSON.stringify(uuidFolder)
+      name: name
     };
+    if (uuidFolder) {
+      data.uuid_folder = uuidFolder;
+    }
     const response = await this.http.post(`${this.endpoint}/${uuidSafe}/uploadbinary`, data);
     return response.data;
   }
@@ -190,7 +213,7 @@ export class Documents {
    * @param name - Name of the file
    */
   async uploadSlaveBinary(uuidMaster: string, base64Binary: string, mimeType: string, name: string): Promise<D4SignResponse> {
-    if (!uuidMaster) throw new Error('UUID master document not set.');
+    this.assertKey(uuidMaster, 'uuidMaster');
     const data = {
       base64_binary_file: base64Binary,
       mime_type: mimeType,
@@ -206,15 +229,15 @@ export class Documents {
    * @param filePath - Path to the file to upload
    */
   async uploadSlave(uuidOriginalFile: string, filePath: string): Promise<D4SignResponse> {
-    if (!uuidOriginalFile) throw new Error('UUID Original file not set.');
+    this.assertKey(uuidOriginalFile, 'uuidOriginalFile');
     const formData = new FormData();
-    const fileContent = fs.readFileSync(filePath);
-    const fileName = path.basename(filePath);
-    formData.append('file', fileContent, fileName);
+    formData.append('file', fs.createReadStream(filePath));
     const response = await this.http.post(`${this.endpoint}/${uuidOriginalFile}/uploadslave`, formData, {
       headers: {
         ...formData.getHeaders(),
       },
+      maxBodyLength: Infinity,
+      maxContentLength: Infinity,
     });
     return response.data;
   }
@@ -225,57 +248,61 @@ export class Documents {
    * @param comment - Optional comment
    */
   async cancel(documentKey: string, comment: string = ''): Promise<D4SignResponse> {
-    const data = { comment: JSON.stringify(comment) };
+    this.assertKey(documentKey, 'documentKey');
+    const data = { comment: comment };
     const response = await this.http.post(`${this.endpoint}/${documentKey}/cancel`, data);
     return response.data;
   }
 
   /**
-   * Create list
+   * Register signers for a document (POST /documents/{uuid}/createlist)
    * @param documentKey - UUID of the document
    * @param signers - Array of signers
-   * @param skipEmail - Optional skip email flag
    */
-  async createList(documentKey: string, signers: any[], skipEmail: boolean = false): Promise<D4SignResponse> {
-    const data = {
-      signers: JSON.stringify(signers),
-      skip_email: JSON.stringify(skipEmail)
-    };
+  async createList(documentKey: string, signers: Signer[]): Promise<D4SignResponse> {
+    this.assertKey(documentKey, 'documentKey');
+    const data = { signers: signers };
     const response = await this.http.post(`${this.endpoint}/${documentKey}/createlist`, data);
     return response.data;
   }
 
   /**
-   * Make document by template
-   * @param documentKey - UUID of the document
+   * Make document by HTML template
+   * @param uuidSafe - UUID of the safe (cofre) where the document is created
    * @param nameDocument - Name of the document
-   * @param templates - Array of templates
+   * @param templates - Templates payload ({ "uuid-template": { vars } })
    * @param uuidFolder - Optional folder UUID
    */
-  async makeDocumentByTemplate(documentKey: string, nameDocument: string, templates: any[], uuidFolder: string = ''): Promise<D4SignResponse> {
-    const data = {
-      templates: JSON.stringify(templates),
-      name_document: JSON.stringify(nameDocument),
-      uuid_folder: JSON.stringify(uuidFolder)
+  async makeDocumentByTemplate(uuidSafe: string, nameDocument: string, templates: any, uuidFolder: string = ''): Promise<D4SignResponse> {
+    this.assertKey(uuidSafe, 'uuidSafe');
+    const data: Record<string, any> = {
+      templates: templates,
+      name_document: nameDocument
     };
-    const response = await this.http.post(`${this.endpoint}/${documentKey}/makedocumentbytemplate`, data);
+    if (uuidFolder) {
+      data.uuid_folder = uuidFolder;
+    }
+    const response = await this.http.post(`${this.endpoint}/${uuidSafe}/makedocumentbytemplate`, data);
     return response.data;
   }
 
   /**
-   * Make document by template word
-   * @param documentKey - UUID of the document
+   * Make document by Word template
+   * @param uuidSafe - UUID of the safe (cofre) where the document is created
    * @param nameDocument - Name of the document
-   * @param templates - Array of templates
+   * @param templates - Templates payload ({ "uuid-template": { vars } })
    * @param uuidFolder - Optional folder UUID
    */
-  async makeDocumentByTemplateWord(documentKey: string, nameDocument: string, templates: any[], uuidFolder: string = ''): Promise<D4SignResponse> {
-    const data = {
-      templates: JSON.stringify(templates),
-      name_document: JSON.stringify(nameDocument),
-      uuid_folder: JSON.stringify(uuidFolder)
+  async makeDocumentByTemplateWord(uuidSafe: string, nameDocument: string, templates: any, uuidFolder: string = ''): Promise<D4SignResponse> {
+    this.assertKey(uuidSafe, 'uuidSafe');
+    const data: Record<string, any> = {
+      templates: templates,
+      name_document: nameDocument
     };
-    const response = await this.http.post(`${this.endpoint}/${documentKey}/makedocumentbytemplateword`, data);
+    if (uuidFolder) {
+      data.uuid_folder = uuidFolder;
+    }
+    const response = await this.http.post(`${this.endpoint}/${uuidSafe}/makedocumentbytemplateword`, data);
     return response.data;
   }
 
@@ -285,7 +312,8 @@ export class Documents {
    * @param url - URL of the webhook
    */
   async webhookAdd(documentKey: string, url: string): Promise<D4SignResponse> {
-    const data = { url: JSON.stringify(url) };
+    this.assertKey(documentKey, 'documentKey');
+    const data = { url: url };
     const response = await this.http.post(`${this.endpoint}/${documentKey}/webhooks`, data);
     return response.data;
   }
@@ -295,6 +323,7 @@ export class Documents {
    * @param documentKey - UUID of the document
    */
   async webhookList(documentKey: string): Promise<D4SignResponse> {
+    this.assertKey(documentKey, 'documentKey');
     const response = await this.http.get(`${this.endpoint}/${documentKey}/webhooks`);
     return response.data;
   }
@@ -307,10 +336,11 @@ export class Documents {
    * @param skipEmail - Optional skip email flag
    */
   async sendToSigner(documentKey: string, message: string = '', workflow: string = '0', skipEmail: boolean = false): Promise<D4SignResponse> {
+    this.assertKey(documentKey, 'documentKey');
     const data = {
-      message: JSON.stringify(message),
-      workflow: JSON.stringify(workflow),
-      skip_email: JSON.stringify(skipEmail)
+      message: message,
+      workflow: workflow,
+      skip_email: skipEmail ? '1' : '0'
     };
     const response = await this.http.post(`${this.endpoint}/${documentKey}/sendtosigner`, data);
     return response.data;
@@ -326,27 +356,29 @@ export class Documents {
    * @param key - Key of the signer
    */
   async addInfo(documentKey: string, email: string = '', displayName: string = '', documentation: string = '', birthday: string = '', key: string = ''): Promise<D4SignResponse> {
+    this.assertKey(documentKey, 'documentKey');
     const data = {
-      key_signer: JSON.stringify(key),
-      email: JSON.stringify(email),
-      display_name: JSON.stringify(displayName),
-      documentation: JSON.stringify(documentation),
-      birthday: JSON.stringify(birthday)
+      key_signer: key,
+      email: email,
+      display_name: displayName,
+      documentation: documentation,
+      birthday: birthday
     };
     const response = await this.http.post(`${this.endpoint}/${documentKey}/addinfo`, data);
     return response.data;
   }
 
   /**
-   * Resend
+   * Resend the signature link to a signer
    * @param documentKey - UUID of the document
-   * @param email - Email of the signer
+   * @param email - Email address or WhatsApp number of the signer
    * @param key - Key of the signer
    */
   async resend(documentKey: string, email: string, key: string = ''): Promise<D4SignResponse> {
+    this.assertKey(documentKey, 'documentKey');
     const data = {
-      email: JSON.stringify(email),
-      key_signer: JSON.stringify(key)
+      email: email,
+      key_signer: key
     };
     const response = await this.http.post(`${this.endpoint}/${documentKey}/resend`, data);
     return response.data;
@@ -355,10 +387,20 @@ export class Documents {
   /**
    * Get document download link (matches PHP getfileurl)
    * @param documentKey - UUID of the document
-   * @param type - Type of file to download (optional)
+   * @param options - Optional download options (type, language, document)
    */
-  async getFileUrl(documentKey: string, type: string): Promise<D4SignResponse> {
-    const data = { type: JSON.stringify(type) };
+  async getFileUrl(documentKey: string, options: DownloadOptions = {}): Promise<D4SignResponse> {
+    this.assertKey(documentKey, 'documentKey');
+    const data: Record<string, string> = {};
+    if (options.type) {
+      data.type = options.type;
+    }
+    if (options.language) {
+      data.language = options.language;
+    }
+    if (options.document) {
+      data.document = options.document;
+    }
     const response = await this.http.post(`${this.endpoint}/${documentKey}/download`, data);
     return response.data;
   }
@@ -372,13 +414,15 @@ export class Documents {
    * @param uuidFolder - Optional folder UUID
    */
   async uploadHash(uuidSafe: string, sha256: string, sha512: string, name: string, uuidFolder: string = ''): Promise<D4SignResponse> {
-    if (!uuidSafe) throw new Error('UUID Safe not set.');
-    const data = {
+    this.assertKey(uuidSafe, 'uuidSafe');
+    const data: Record<string, string> = {
       sha256: sha256,
       sha512: sha512,
-      name: name,
-      uuid_folder: JSON.stringify(uuidFolder)
+      name: name
     };
+    if (uuidFolder) {
+      data.uuid_folder = uuidFolder;
+    }
     const response = await this.http.post(`${this.endpoint}/${uuidSafe}/uploadhash`, data);
     return response.data;
   }
@@ -387,7 +431,8 @@ export class Documents {
    * Get document details (matches PHP find with documentKey)
    * @param documentUuid - UUID of the document
    */
-  async getDocument(documentUuid: string): Promise<DocumentDetailResponse> {
+  async getDocument(documentUuid: string): Promise<Document> {
+    this.assertKey(documentUuid, 'documentUuid');
     const response = await this.http.get(`${this.endpoint}/${documentUuid}`);
     return response.data;
   }

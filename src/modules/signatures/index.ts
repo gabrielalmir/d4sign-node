@@ -1,149 +1,89 @@
-import { AxiosInstance } from 'axios';
-import { D4SignResponse } from '../../types';
-
-/**
- * Signer type enum
- */
-export enum SignerType {
-  EMAIL = 'email',
-  PHONE = 'phone',
-  CERTIFICATE = 'certificate',
-}
-
-/**
- * Signer interface
- */
-export interface Signer {
-  email: string;
-  name: string;
-  documentation?: string;
-  foreign?: boolean;
-  phone_country?: string;
-  phone_number?: string;
-  birthday?: string;
-  action?: string;
-}
+import { D4SignResponse, Signer } from '../../types';
+import { Documents } from '../documents';
 
 /**
  * Signatures module for D4Sign API
+ *
+ * All methods operate on the same `/documents/...` endpoints as the
+ * `Documents` module and delegate to it, so fixes apply in one place.
  */
 export class Signatures {
-  private http: AxiosInstance;
-  private readonly endpoint = '/documents';
+  private documents: Documents;
 
   /**
    * Creates a new Signatures module instance
    *
-   * @param http - Axios instance for making HTTP requests
+   * @param documents - Documents module instance to delegate to
    */
-  constructor(http: AxiosInstance) {
-    this.http = http;
+  constructor(documents: Documents) {
+    this.documents = documents;
   }
 
   /**
    * Change password code for a signer
    */
   async changePasswordCode(documentKey: string, keySigner: string, email: string, code: string): Promise<D4SignResponse> {
-    const data = {
-      email: JSON.stringify(email),
-      'password-code': JSON.stringify(code),
-      'key-signer': JSON.stringify(keySigner)
-    };
-    const response = await this.http.post(`${this.endpoint}/${documentKey}/changepasswordcode`, data);
-    return response.data;
+    return this.documents.changePasswordCode(documentKey, keySigner, email, code);
   }
 
   /**
    * Change SMS number for a signer
    */
   async changeSmsNumber(documentKey: string, keySigner: string, email: string, sms: string): Promise<D4SignResponse> {
-    const data = {
-      email: JSON.stringify(email),
-      'sms-number': JSON.stringify(sms),
-      'key-signer': JSON.stringify(keySigner)
-    };
-    const response = await this.http.post(`${this.endpoint}/${documentKey}/changesmsnumber`, data);
-    return response.data;
+    return this.documents.changeSmsNumber(documentKey, keySigner, email, sms);
   }
 
   /**
    * Remove a signer from a document
    */
   async removeEmail(documentKey: string, email: string, key: string): Promise<D4SignResponse> {
-    const data = {
-      'email-signer': JSON.stringify(email),
-      'key-signer': JSON.stringify(key)
-    };
-    const response = await this.http.post(`${this.endpoint}/${documentKey}/removeemaillist`, data);
-    return response.data;
+    return this.documents.removeEmail(documentKey, email, key);
   }
 
   /**
    * Change a signer's email
    */
   async changeEmail(documentKey: string, emailBefore: string, emailAfter: string, key: string = ''): Promise<D4SignResponse> {
-    const data = {
-      'email-before': JSON.stringify(emailBefore),
-      'email-after': JSON.stringify(emailAfter),
-      'key-signer': JSON.stringify(key)
-    };
-    const response = await this.http.post(`${this.endpoint}/${documentKey}/changeemail`, data);
-    return response.data;
+    return this.documents.changeEmail(documentKey, emailBefore, emailAfter, key);
   }
 
   /**
    * List signatures for a document
    */
   async listSignatures(documentKey: string): Promise<D4SignResponse> {
-    const response = await this.http.get(`${this.endpoint}/${documentKey}/list`);
-    return response.data;
+    return this.documents.listSignatures(documentKey);
   }
 
   /**
-   * Get status for a document
+   * List documents in a given phase
+   *
+   * @param statusId - Phase id (1-6), NOT a document UUID
+   * @param page - Optional page number
    */
-  async status(status: string, page: number = 1): Promise<D4SignResponse> {
-    const params = { pg: page };
-    const response = await this.http.get(`${this.endpoint}/${status}/status`, { params });
-    return response.data;
+  async status(statusId: string, page: number = 1): Promise<D4SignResponse> {
+    return this.documents.status(statusId, page);
   }
 
   /**
-   * Create a signature list for a document
+   * Register signers for a document
    */
-  async createList(documentKey: string, signers: any[], skipEmail: boolean = false): Promise<D4SignResponse> {
-    const data = {
-      signers: JSON.stringify(signers),
-      skip_email: JSON.stringify(skipEmail)
-    };
-    const response = await this.http.post(`${this.endpoint}/${documentKey}/createlist`, data);
-    return response.data;
+  async createList(documentKey: string, signers: Signer[]): Promise<D4SignResponse> {
+    return this.documents.createList(documentKey, signers);
   }
 
   /**
    * Add info to a signer
    */
   async addInfo(documentKey: string, email: string = '', displayName: string = '', documentation: string = '', birthday: string = '', key: string = ''): Promise<D4SignResponse> {
-    const data = {
-      key_signer: JSON.stringify(key),
-      email: JSON.stringify(email),
-      display_name: JSON.stringify(displayName),
-      documentation: JSON.stringify(documentation),
-      birthday: JSON.stringify(birthday)
-    };
-    const response = await this.http.post(`${this.endpoint}/${documentKey}/addinfo`, data);
-    return response.data;
+    return this.documents.addInfo(documentKey, email, displayName, documentation, birthday, key);
   }
 
   /**
-   * Resend a document to a signer
+   * Resend the signature link to a signer
+   *
+   * @param email - Email address or WhatsApp number of the signer
    */
   async resend(documentKey: string, email: string, key: string = ''): Promise<D4SignResponse> {
-    const data = {
-      email: JSON.stringify(email),
-      key_signer: JSON.stringify(key)
-    };
-    const response = await this.http.post(`${this.endpoint}/${documentKey}/resend`, data);
-    return response.data;
+    return this.documents.resend(documentKey, email, key);
   }
 }
